@@ -46,11 +46,12 @@ data_parsed <- req_test |>
 
 
 data_parsed |>
- mutate(wkday = wday(created_at)) |>
+ mutate(wkday = wday(created_at, label = TRUE, week_start = 1)) |>
+  mutate(wkday = fct_reorder(wkday, wday(created_at, week_start = 1), .desc = TRUE)) |>
   mutate(created_at = floor_date(created_at, "week")) |>
  ggplot(aes(created_at, wkday, fill = sleep_performance_percentage)) + geom_tile() +
   labs(title = "Sleep Performance",
        subtitle = "Source: Whoop API",
        x = "Created", y = "Week Day")
 
-ggsave(here::here("Plots", "average_sleep_perf.png"))
+ggsave(here::here("Plots", "average_sleep_perf.png"), width = 12, height = 8)
