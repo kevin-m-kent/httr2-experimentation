@@ -15,22 +15,18 @@ token_url <- "https://api.prod.whoop.com/oauth/oauth2/token"
 
 oauth_client <- oauth_client(client_id, token_url, secret=client_secret)
 
-auth_code <- oauth_flow_auth_code( client = oauth_client,
-                                     auth_url = auth_code_url,
-                           redirect_uri = "http://localhost:9090",
-                           scope ="read:cycles")
+api_base <- "https://api.prod.whoop.com/developer/"
 
-req_test <- request("https://api.prod.whoop.com/developer/v1/cycle") |>
+req_test <- request(paste0(api_base, "v1/activity/sleep")) |>
     req_oauth_auth_code(oauth_client,
                         auth_url = auth_code_url,
                         redirect_uri = "http://localhost:9090",
-                        scope ="read:cycles") |>
+                        scope ="read:sleep") |>
     req_perform_iterative(iterate_with_cursor("nextToken", function(resp)
                                                   {
                                                  resp |>
                                                     resp_body_json() |>
                                                     pluck("next_token")}))
-                          max_reqs = 50)
 
 get_records <- function(resp) {
 
@@ -50,9 +46,17 @@ data_parsed <- req_test |>
 
 
 data_parsed |>
-  ggplot(aes(created_at, average_heart_rate)) + geom_line() + theme_minimal()  +
-  labs(title = "Average Heart Rate",
+  ggplot(aes(created_at, sleep_performance_percentage)) + geom_line() + theme_minimal()  +
+  labs(title = "Sleep Performance",
        subtitle = "Source: Whoop API",
-       x = "Created", y = "Average Heart Rate")
+       x = "Created", y = "Sleep Peformance Percentage")
 
-ggsave(here::here("Plots", "average_hr.png"))
+data_parsed |>
+ mutate(wkday = wday(created_at)) |>
+  mutate(created_at = floor_date(created_at, "week")) |>
+ ggplot(aes(created_at, wkday, fill = sleep_performance_percentage)) + geom_tile() +
+  labs(title = "Sleep Performance",
+       subtitle = "Source: Whoop API",
+       x = "Created", y = "Sleep Peformance Percentage")
+
+ggsave(here::here("Plots", "average_sleep_perf.png"))
