@@ -21,9 +21,16 @@ auth_code <- oauth_flow_auth_code( client = oauth_client,
                            scope ="read:cycles")
 
 req_test <- request("https://api.prod.whoop.com/developer/v1/cycle") |>
-    req_auth_bearer_token(auth_code$access_token) |>
-    req_perform_iterative(iterate_with_offset("next_token"),
-                          max_reqs = 10)
+    req_oauth_auth_code(oauth_client,
+                        auth_url = auth_code_url,
+                        redirect_uri = "http://localhost:9090",
+                        scope ="read:cycles") |>
+    req_perform_iterative(iterate_with_cursor("nextToken", function(resp)
+                                                  {
+                                                 resp |>
+                                                    resp_body_json() |>
+                                                    pluck("next_token")}))
+                          max_reqs = 50)
 
 get_records <- function(resp) {
 
