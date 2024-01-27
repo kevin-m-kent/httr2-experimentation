@@ -43,4 +43,9 @@ data_parsed <- req_test |>
 
 
 data_parsed |>
-  ggplot(aes(created_at, average_heart_rate)) + geom_line() + theme_minimal()
+  ggplot(aes(created_at, average_heart_rate)) + geom_line() + theme_minimal()  +
+  labs(title = "Average Heart Rate",
+       subtitle = "Source: Whoop API",
+       x = "Created", y = "Average Heart Rate")
+
+ggsave(here::here("Plots", "average_hr.png"))
