@@ -28,22 +28,19 @@ req_test <- request(paste0(api_base, "v1/activity/sleep")) |>
                                                     resp_body_json() |>
                                                     pluck("next_token")}))
 
-get_records <- function(resp) {
-
-  resp |>
-    resp_body_json() |>
-    pluck("records")
-
-}
-
 data_parsed <- req_test |>
-  resps_data(get_records) |>
+  resps_data(function(resp) {
+
+    resp |>
+      resp_body_json() |>
+      pluck("records")
+
+  }) |>
   map_dfr(~ enframe(.) |> pivot_wider()) |>
   unnest_wider(col="score") |>
   mutate(across(contains("_at"), ymd_hms)) |>
   mutate(across(c("start", "end"), ymd_hms)) |>
   mutate(across(contains("id"), as.numeric))
-
 
 data_parsed |>
  mutate(wkday = wday(created_at, label = TRUE, week_start = 1)) |>
@@ -52,6 +49,6 @@ data_parsed |>
  ggplot(aes(created_at, wkday, fill = sleep_performance_percentage)) + geom_tile() +
   labs(title = "Sleep Performance",
        subtitle = "Source: Whoop API",
-       x = "Created", y = "Week Day")
+       x = "Created", y = "Week Day") +theme_minimal()
 
 ggsave(here::here("Plots", "average_sleep_perf.png"), width = 12, height = 8)
