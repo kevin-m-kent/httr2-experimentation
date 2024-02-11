@@ -47,4 +47,5 @@ cleaned_table |>
        subtitle = paste0("Data from https://www.footballdb.com/seasons/super-bowls.html")) +
   scale_x_discrete(position = "top")
 
+
 ggsave(here::here("Plots", "superbowl_squares_historical.png"), width = 12, height = 12)
